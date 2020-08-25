@@ -1,0 +1,15 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Preference
+        app:fragment="com.example.notekepper.SettingsActivity$MessagesFragment"
+        app:icon="@drawable/ic_baseline_supervised_user_circle_24"
+        app:key="messages_header"
+        app:title="@string/general_pref" />
+
+    <Preference
+        app:fragment="com.example.notekepper.SettingsActivity$SyncFragment"
+        app:icon="@drawable/sync"
+        app:key="sync_header"
+        app:title="@string/sync_header" />
+
+</PreferenceScreen>
