@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -20,6 +21,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.example.notekepper.NoteKeeperProviderContract.Courses;
+import com.example.notekepper.NoteKeeperProviderContract.Notes;
+
+import java.net.URI;
 
 import static com.example.notekepper.NoteKeeperDatabaseContract.*;
 
@@ -124,12 +130,6 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             mViewModel.saveState(outState);
     }
 
-    private void storePreviousNoteValues() {
-        CourseInfo course = DataManager.getInstance().getCourse(mViewModel.mOriginalNoteCourseId);
-        mNote.setCourse(course);
-        mNote.setTitle(mViewModel.mOriginalNoteTitle);
-        mNote.setText(mViewModel.mOriginalNoteText);
-    }
 
     private void saveNote() {
         String courseId = selectCourseId();
@@ -174,7 +174,6 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         int courseIndex = getIndexOfCourseId(courseId);
         mSpinnerCourses.setSelection(courseIndex);
 
-        CourseInfo course = DataManager.getInstance().getCourse(courseId);
         mTextNoteText.setText(noteText);
         mTextNoteTitle.setText(noteTitle);
         
@@ -231,9 +230,6 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem item = menu.findItem(R.id.action_next);
-        int lastNoteIndex = DataManager.getInstance().getNotes().size() - 1;
-        item.setEnabled(mNoteId < lastNoteIndex);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -263,36 +259,26 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private CursorLoader createLoaderCourse() {
         mCourseQueryFinished = false;
-        return new CursorLoader(this){
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = mMDbOpenHelper.getReadableDatabase();
-                String[] courseColumns = {
-                        CourseInfoEntry.COLUMN_COURSE_TITLE,
-                        CourseInfoEntry.COLUMN_COURSE_ID,
-                        CourseInfoEntry._ID
-                };
-                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns,null,null,null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-            }
+        Uri uri = Courses.CONTENT_URI;
+        String[] courseColumns = {
+                Courses.COLUMN_COURSE_TITLE,
+                Courses.COLUMN_COURSE_ID,
+                Courses._ID
         };
+        return new CursorLoader(this, uri, courseColumns, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
     }
 
     private CursorLoader createLoaderNotes() {
         mNoteQueryFinished = false;
-        return new CursorLoader(this){
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = mMDbOpenHelper.getReadableDatabase();
-                String selection = NoteInfoEntry._ID + " = ?";
-                String [] selectionArgs = {Integer.toString(mNoteId)};
-                String [] noteColumns = {
-                        NoteInfoEntry.COLUMN_COURSE_ID,
-                        NoteInfoEntry.COLUMN_NOTE_TITLE,
-                        NoteInfoEntry.COLUMN_NOTE_TEXT
-                };
-                 return db.query(NoteInfoEntry.TABLE_NAME, noteColumns, selection, selectionArgs, null, null, null);
-            }
+        Uri uri = Notes.CONTENT_URI;
+        String selection = NoteInfoEntry._ID + " = ?";
+        String [] selectionArgs = {Integer.toString(mNoteId)};
+        String [] noteColumns = {
+                NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_NOTE_TEXT
         };
+        return new CursorLoader(this, uri, noteColumns,selection,selectionArgs,null);
     }
 
     @Override

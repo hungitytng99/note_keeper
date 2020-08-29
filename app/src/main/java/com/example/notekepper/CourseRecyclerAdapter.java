@@ -1,6 +1,7 @@
 package com.example.notekepper;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,19 +11,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.notekepper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
 public class CourseRecyclerAdapter extends RecyclerView.Adapter<CourseRecyclerAdapter.ViewHolder>{
     private final Context mContext;
-    private final List<CourseInfo> mCourses;
+    private Cursor mCursor;
 
     private final LayoutInflater mLayoutInflater;
 
-    public CourseRecyclerAdapter(Context context, List<CourseInfo> courses) {
+    public CourseRecyclerAdapter(Context context, Cursor cursor) {
         mContext = context;
-        mCourses = courses;
+        mCursor = cursor;
         mLayoutInflater = LayoutInflater.from(mContext);
     }
 
@@ -35,15 +37,15 @@ public class CourseRecyclerAdapter extends RecyclerView.Adapter<CourseRecyclerAd
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        CourseInfo course = mCourses.get(position);
-        Log.i("DMDMDMDM", String.valueOf(position));
-        holder.mTextCourse.setText(course.getTitle());//course 0
+        int courseTitlePos = mCursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
+        mCursor.moveToPosition(position);
+        holder.mTextCourse.setText(mCursor.getString(courseTitlePos));//course 0
         holder.mCurrentPosition= position;//view
     }
 
     @Override
     public int getItemCount() {
-        return mCourses.size();
+        return mCursor.getCount();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
@@ -58,7 +60,7 @@ public class CourseRecyclerAdapter extends RecyclerView.Adapter<CourseRecyclerAd
             itemView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View view) {
-                    Snackbar.make(view, mCourses.get(mCurrentPosition).getTitle(),Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(view, mTextCourse.getText(),Snackbar.LENGTH_LONG).show();
                 }
             });
         }

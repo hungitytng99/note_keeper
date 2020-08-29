@@ -1,9 +1,13 @@
 package com.example.notekepper;
 
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -15,21 +19,31 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import com.example.notekepper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import com.example.notekepper.NoteKeeperDatabaseContract.NoteInfoEntry;
+import com.example.notekepper.NoteKeeperProviderContract.Courses;
+import com.example.notekepper.ui.courses.CoursesFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity {
+import java.io.Serializable;
 
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+
+    public static final String M_DB_OPEN_HELPER_BUNDLE = "mDbOpenHelper_bundle";
+    public static final int LOADER_NOTEKEEPER_COURSES = 0;
     private AppBarConfiguration mAppBarConfiguration;
     private NavController mNavController;
     private NavigationView mNavigationView;
     private NoteKeeperOpenHelper mDbOpenHelper;
+
 
 
     @Override
@@ -58,9 +72,8 @@ public class MainActivity extends AppCompatActivity {
         mNavController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, mNavController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(mNavigationView, mNavController);
-        DataManager.loadFromDatabase(mDbOpenHelper);
-
-
+        //DataManager.loadFromDatabase(mDbOpenHelper);
+        getLoaderManager().initLoader(LOADER_NOTEKEEPER_COURSES,null, this);
 
     }
 
@@ -103,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         updateNavHeader();
 
-        //printDbContent(mDbOpenHelper, NoteKeeperDatabaseContract.NoteInfoEntry.TABLE_NAME);
+        printDbContent(mDbOpenHelper, CourseInfoEntry.TABLE_NAME);
     }
 
     @Override
@@ -143,4 +156,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Uri uri = Courses.CONTENT_URI;
+        String [] column = {CourseInfoEntry._ID, CourseInfoEntry.COLUMN_COURSE_TITLE,CourseInfoEntry.COLUMN_COURSE_ID};
+        return new CursorLoader(this, uri, column, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+            //send data to course fragment
+            CoursesFragment.getCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+            CoursesFragment.getCursor(null);
+    }
 }

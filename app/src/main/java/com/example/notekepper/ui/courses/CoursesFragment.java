@@ -1,28 +1,26 @@
 package com.example.notekepper.ui.courses;
 
+import android.app.LoaderManager;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.notekepper.CourseInfo;
 import com.example.notekepper.CourseRecyclerAdapter;
-import com.example.notekepper.DataManager;
-import com.example.notekepper.NoteInfo;
-import com.example.notekepper.NoteRecyclerAdapter;
+import com.example.notekepper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import com.example.notekepper.NoteKeeperOpenHelper;
 import com.example.notekepper.R;
-
-import java.util.List;
 
 public class CoursesFragment extends Fragment {
 
@@ -31,6 +29,11 @@ public class CoursesFragment extends Fragment {
     private CourseRecyclerAdapter mCourseRecyclerAdapter;
     private View mRoot;
     private GridLayoutManager mCoursesLayoutManager;
+    private static Cursor mCursor = null;
+
+
+
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -41,13 +44,16 @@ public class CoursesFragment extends Fragment {
         return mRoot;
     }
 
+    public static void getCursor(Cursor cursor) {
+        mCursor = cursor;
+    }
+
     private void initializeDisplayContent() {
         mRecyclerView = (RecyclerView) mRoot.findViewById(R.id.list_courses);
         mCoursesLayoutManager = new GridLayoutManager(getContext(), getResources().getInteger(R.integer.course_grid_span));
         mRecyclerView.setLayoutManager(mCoursesLayoutManager);
 
-        List<CourseInfo> courses = DataManager.getInstance().getCourses();
-        mCourseRecyclerAdapter = new CourseRecyclerAdapter(getContext(), courses );
+        mCourseRecyclerAdapter = new CourseRecyclerAdapter(getContext(), mCursor );
         mRecyclerView.setAdapter(mCourseRecyclerAdapter);
     }
 }

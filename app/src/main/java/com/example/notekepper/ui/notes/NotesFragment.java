@@ -34,6 +34,7 @@ public class NotesFragment extends Fragment {
                 ViewModelProviders.of(this).get(NotesViewModel.class);
         mRoot = inflater.inflate(R.layout.fragment_notes, container, false);
         mDbOpenHelper = new NoteKeeperOpenHelper(getContext());
+
         //initializeDisplayContent();
         return mRoot;
     }
