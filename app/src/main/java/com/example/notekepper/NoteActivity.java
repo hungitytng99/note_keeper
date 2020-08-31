@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.notekepper.NoteKeeperProviderContract.CourseIdColumns;
 import com.example.notekepper.NoteKeeperProviderContract.Courses;
 import com.example.notekepper.NoteKeeperProviderContract.Notes;
 
@@ -85,27 +86,6 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         readDisplayStateValues();
         if(!mIsNewNote)
             getLoaderManager().initLoader(LOADER_NOTES,null, this);
-    }
-
-    private void loadCourseData() {
-        SQLiteDatabase db = mMDbOpenHelper.getReadableDatabase();
-        String[] courseColumns = {
-                CourseInfoEntry.COLUMN_COURSE_TITLE,
-                CourseInfoEntry.COLUMN_COURSE_ID,
-                CourseInfoEntry._ID
-        };
-        Cursor cursor = db.query(CourseInfoEntry.TABLE_NAME, courseColumns,null,null,null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-
-        mAdapterCourses.changeCursor(cursor);
-    }
-
-    private void saveOriginalNoteValues() {
-        if(mIsNewNote)
-            return;
-        mViewModel.mOriginalNoteCourseId = mNote.getCourse().getCourseId();
-        mViewModel.mOriginalNoteTitle = mNote.getTitle();
-        mViewModel.mOriginalNoteText = mNote.getText();
-
     }
 
     @Override
@@ -262,7 +242,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         Uri uri = Courses.CONTENT_URI;
         String[] courseColumns = {
                 Courses.COLUMN_COURSE_TITLE,
-                Courses.COLUMN_COURSE_ID,
+                CourseIdColumns.COLUMN_COURSE_ID,
                 Courses._ID
         };
         return new CursorLoader(this, uri, courseColumns, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);

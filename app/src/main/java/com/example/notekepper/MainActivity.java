@@ -30,6 +30,7 @@ import com.example.notekepper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import com.example.notekepper.NoteKeeperDatabaseContract.NoteInfoEntry;
 import com.example.notekepper.NoteKeeperProviderContract.Courses;
 import com.example.notekepper.ui.courses.CoursesFragment;
+import com.example.notekepper.ui.notes.NotesFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final String M_DB_OPEN_HELPER_BUNDLE = "mDbOpenHelper_bundle";
     public static final int LOADER_NOTEKEEPER_COURSES = 0;
+    public static final int CONTENT_EXPANDED_URI = 1;
     private AppBarConfiguration mAppBarConfiguration;
     private NavController mNavController;
     private NavigationView mNavigationView;
@@ -73,8 +75,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         NavigationUI.setupActionBarWithNavController(this, mNavController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(mNavigationView, mNavController);
         //DataManager.loadFromDatabase(mDbOpenHelper);
+        getLoaderManager().initLoader(CONTENT_EXPANDED_URI, null, this);
         getLoaderManager().initLoader(LOADER_NOTEKEEPER_COURSES,null, this);
-
     }
 
     private void printDbContent(NoteKeeperOpenHelper dbOpenHelper, String tableName) {
@@ -157,16 +159,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        Uri uri = Courses.CONTENT_URI;
-        String [] column = {CourseInfoEntry._ID, CourseInfoEntry.COLUMN_COURSE_TITLE,CourseInfoEntry.COLUMN_COURSE_ID};
-        return new CursorLoader(this, uri, column, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+    public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+        if(id == LOADER_NOTEKEEPER_COURSES) {
+            Uri uri = Courses.CONTENT_URI;
+            String[] column = {CourseInfoEntry._ID, CourseInfoEntry.COLUMN_COURSE_TITLE, CourseInfoEntry.COLUMN_COURSE_ID};
+            return new CursorLoader(this, uri, column, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+        } else if(id == CONTENT_EXPANDED_URI)
+        {
+            final String[] noteColumns = {
+                    NoteInfoEntry.getQName(NoteInfoEntry._ID),
+                    NoteInfoEntry.COLUMN_NOTE_TITLE,
+                    CourseInfoEntry.COLUMN_COURSE_TITLE
+            };
+            final String noteOrderBy = CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_TITLE) + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+            Uri uri = NoteKeeperProviderContract.Notes.PATH_EXPANDED_URI;
+            return new CursorLoader(this, uri, noteColumns, null, null, noteOrderBy);
+        } else
+            return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-            //send data to course fragment
+            //send data to course fragment;
+        if(loader.getId() == LOADER_NOTEKEEPER_COURSES)
             CoursesFragment.getCursor(cursor);
+        else if(loader.getId() == CONTENT_EXPANDED_URI)
+            NotesFragment.getCursor(cursor , this);
     }
 
     @Override

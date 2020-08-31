@@ -1,5 +1,6 @@
 package com.example.notekepper.ui.notes;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -22,11 +23,12 @@ import com.example.notekepper.R;
 public class NotesFragment extends Fragment {
 
     private NotesViewModel mNotesViewModel;
-    private RecyclerView mRecyclerView;
-    private View mRoot;
-    private NoteRecyclerAdapter mNoteRecyclerAdapter;
+    private static RecyclerView mRecyclerView;
+    private static View mRoot;
+    private static NoteRecyclerAdapter mNoteRecyclerAdapter;
     private NoteKeeperOpenHelper mDbOpenHelper;
-    private Cursor mNoteCursor;
+    private static Cursor mNoteCursor;
+    private static Context sContext;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -35,34 +37,35 @@ public class NotesFragment extends Fragment {
         mRoot = inflater.inflate(R.layout.fragment_notes, container, false);
         mDbOpenHelper = new NoteKeeperOpenHelper(getContext());
 
-        //initializeDisplayContent();
+
         return mRoot;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if(mNoteCursor != null)
+            initializeDisplayContent();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    public static void getCursor(Cursor cursor, Context context)
+    {
+        mNoteCursor = cursor;
+        sContext = context;
         initializeDisplayContent();
     }
 
-    private void loadNotes() {
-        SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
-        final String[] noteColumns = {
-                NoteInfoEntry.getQName(NoteInfoEntry._ID),
-                NoteInfoEntry.COLUMN_NOTE_TITLE,
-                CourseInfoEntry.COLUMN_COURSE_TITLE
-        };
-        String noteOrderBy = CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_TITLE) + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
-        String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " + CourseInfoEntry.TABLE_NAME + " ON " + NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " + CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
-        mNoteCursor = db.query(tablesWithJoin, noteColumns, null, null, null, null, noteOrderBy);
-    }
-
-    private void initializeDisplayContent() {
+    private static void initializeDisplayContent() {
         mRecyclerView = (RecyclerView) mRoot.findViewById(R.id.list_notes);
-        LinearLayoutManager noteLayoutManager = new LinearLayoutManager(getContext());
-        loadNotes();
+        LinearLayoutManager noteLayoutManager = new LinearLayoutManager(sContext);
+        //loadNotes();
         mRecyclerView.setLayoutManager(noteLayoutManager);
-        mNoteRecyclerAdapter = new NoteRecyclerAdapter(getContext(), mNoteCursor);
+        mNoteRecyclerAdapter = new NoteRecyclerAdapter(sContext, mNoteCursor);
         mRecyclerView.setAdapter(mNoteRecyclerAdapter);
     }
 

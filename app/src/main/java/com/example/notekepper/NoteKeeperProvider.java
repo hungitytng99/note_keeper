@@ -9,6 +9,7 @@ import android.net.Uri;
 
 import static com.example.notekepper.NoteKeeperDatabaseContract.*;
 import static com.example.notekepper.NoteKeeperProviderContract.*;
+import static com.example.notekepper.NoteKeeperProviderContract.Notes.PATH_EXPANDED_URI;
 
 public class NoteKeeperProvider extends ContentProvider {
 
@@ -20,9 +21,12 @@ public class NoteKeeperProvider extends ContentProvider {
 
     public static final int NOTES = 1;
 
+    public static final int NOTES_EXPANDED = 2;
+
     static {
         sUriMatcher.addURI(AUTHORITY, Courses.PATH, COURSES);
         sUriMatcher.addURI(AUTHORITY, Notes.PATH, NOTES);
+        sUriMatcher.addURI(AUTHORITY,Notes.PATH_EXPANDED, NOTES_EXPANDED);
     }
 
     public NoteKeeperProvider() {
@@ -67,8 +71,16 @@ public class NoteKeeperProvider extends ContentProvider {
             case NOTES:
                 cursor = db.query(NoteInfoEntry.TABLE_NAME, projection,selection,selectionArgs,null,null,sortOrder);
                 break;
+            case NOTES_EXPANDED:
+                cursor = notesExpandedQuery(db, projection, selection,selectionArgs,sortOrder);
+                break;
         }
         return cursor;
+    }
+
+    private Cursor notesExpandedQuery(SQLiteDatabase db, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " + CourseInfoEntry.TABLE_NAME + " ON " + NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " + CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
+        return db.query(tablesWithJoin, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     @Override

@@ -32,9 +32,6 @@ public class CoursesFragment extends Fragment {
     private static Cursor mCursor = null;
 
 
-
-
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         mCoursesViewModel =
